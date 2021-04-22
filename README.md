@@ -44,5 +44,5 @@ Choose firmware and upload.. after uploading - it reboots itself
 
 Or you can you arduino IDE to set port for update -> 192.168.4.1 when OTA it must appears
 
-![Alt text](petdoor.gif) / ![](petdoor.gif)
+![](petdoor.gif)
 
