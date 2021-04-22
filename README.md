@@ -4,10 +4,10 @@
 > - 1 x Pet Door: ferplast swing 1
 > - 1 x ESP32 (I used esp32 - wroom)
 > - 2 x ble ibeacon (stick'n'found)
->1 x reed switch - to determinate if the door normally closed
->1 x switch (always open door connected)
->1 x magnet - put it on the door,where you put reed switch(gerkon)
->1 x servo motor (I used: SG92R)
+> - 1 x reed switch - to determinate if the door normally closed
+> - 1 x switch (always open door connected)
+> - 1 x magnet - put it on the door,where you put reed switch(gerkon)
+>v1 x servo motor (I used: SG92R)
 
 ## Hardware
 - Servo motor connected to VCC GND, D13
@@ -44,8 +44,8 @@ compile firmware...and you get path like:
 ``` - Start EspotaGui.exe : set remote host 192.168.4.1, port 8266, local host 192.168.4.2 ```
 ```- Choose firmware and upload.. after uploading - it reboots itself```
 
-> ``` Or you can you arduino IDE to set port for update -> 192.168.4.1  ```
->``` when OTA it must appears```
+> ``` - Or you can you arduino IDE to set port for update -> 192.168.4.1  ```
+>``` - when OTA it must appears```
 >
 
 ![](1.jpg)
