@@ -55,6 +55,6 @@ compile firmware...and you get path like:
 ![](5.jpg)
 ![](6.jpg)
 ![](7.jpg)
-
+![](howto.jpg)
 ![](petdoor.gif)
 
