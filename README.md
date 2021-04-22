@@ -47,5 +47,14 @@ compile firmware...and you get path like:
 > ``` Or you can you arduino IDE to set port for update -> 192.168.4.1  ```
 >``` when OTA it must appears```
 >
+
+![](1.jpg)
+![](2.jpg)
+![](3.jpg)
+![](4.jpg)
+![](5.jpg)
+![](6.jpg)
+![](7.jpg)
+
 ![](petdoor.gif)
 
