@@ -1,9 +1,9 @@
 # Smart Pet Gateway 
 ## Based on esp32 (wroom) ble, servo and ibeacon.
 
->1 x Pet Door: ferplast swing 1
->1 x ESP32 (I used esp32 - wroom)
->2 x ble ibeacon (stick'n'found)
+> - 1 x Pet Door: ferplast swing 1
+> - 1 x ESP32 (I used esp32 - wroom)
+> - 2 x ble ibeacon (stick'n'found)
 >1 x reed switch - to determinate if the door normally closed
 >1 x switch (always open door connected)
 >1 x magnet - put it on the door,where you put reed switch(gerkon)
