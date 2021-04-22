@@ -22,10 +22,13 @@ range / rssi
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 SMSSmooth myServo; 
-
+const char* ssid1 = "SSID_OF_HOME_NETWORK";
+const char* password1 =  "PASS_OF_HOME_NETWORK";
+String rssi_out = "";
+int webrssi = 10;
 bool gerkondebug = false; //debug gerkon
 static boolean debug = false; //more verbose
-String fwversion = "22042021.1";
+String fwversion = "22042021.2";
 String knownAddresses[] = {"d8:e3:43:1d:67:71", "d8:e3:43:1d:67:70"};  //mac of tag ibeacon
 const int gerkonpin = 14; //pin for gerkon GND and d14
 const int switch_disable_pin = 27; //pin for switch to always open door.. if switched - door always open
@@ -88,6 +91,8 @@ const char index_html[] PROGMEM = R"rawliteral(
     <input type="submit" value="Submit" onclick="submitMessage()">
   </form><br>
   <iframe style="display:none" name="hidden-form"></iframe>
+  <iframe id="rssi" src="data.txt" height="200" width="300" title="Iframe Example"></iframe>
+  <script> setInterval( function myRefresh() {  document.getElementById("rssi").src="data.txt";}, 1000); </script>
 </body></html>)rawliteral";
 
 
@@ -141,7 +146,33 @@ void writeFile(fs::FS& fs, const char* path, const char* message) {
             Serial.println(F("- write failed"));
         }
     }
+    file.close();
 }
+
+void appendFile(fs::FS& fs, const char* path, const char* message) {
+    if (debug) {
+        Serial.printf("Appending file: %s\r\n", path);
+    }
+    delay(150);
+    File file = fs.open(path, FILE_APPEND);
+    if (!file) {
+        if (debug) {
+            Serial.println(F("- failed to open file for appending"));
+        }
+        return;
+    }
+    if (file.print(message)) {
+        if (debug) {
+            Serial.println(F("- file appended"));
+        }
+    } else {
+        if (debug) {
+            Serial.println(F("- append failed"));
+        }
+    }
+    file.close();
+}
+
 
 String processor(const String& var) {
     if (var == "inputInt") {
@@ -224,7 +255,17 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
             for (size_t i = 0; i < (sizeof(knownAddresses) / sizeof(knownAddresses[0])); i++) {
               bool deviceKnown = knownAddresses[i].equalsIgnoreCase(pServerAddress.toString().c_str());
               if (deviceKnown) {
-                            Serial.println((String)pServerAddress.toString().c_str()+"  Current rssi: "+advertisedDevice.getRSSI());
+                            String sendem = ((String)pServerAddress.toString().c_str()+"  rssi: "+advertisedDevice.getRSSI()+"\r\n");
+                            const char* sendemchar = sendem.c_str();
+                            Serial.println(sendem);
+                            if (webrssi == 10){
+                              writeFile(SPIFFS, "/data.txt", sendemchar);
+                              webrssi = webrssi - 1;
+                            }else{
+                                 appendFile(SPIFFS, "/data.txt", sendemchar);
+                                 webrssi = webrssi - 1 ;
+                                 if (webrssi == 0){webrssi = 10;}
+                            }
                             if (advertisedDevice.getRSSI() >= yourInputInt){ 
                                 Serial.println("ON");
                                 Serial.println((String)"We found cat is near,rssi= "+advertisedDevice.getRSSI());
@@ -241,8 +282,7 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
                     }else {
                       donottouch = false;
                     }
-            } 
-                        
+            }                         
            }
           }
   };
@@ -284,16 +324,24 @@ void setup()
         Serial.println("An Error has occurred while mounting SPIFFS");
         return;
     }
+    writeFile(SPIFFS, "/data.txt", "RSSI\r\n");
     Serial.print(F("FW. Version:"));
     Serial.println(fwversion);
     delay (2000);
     inputx();
+    WiFi.begin(ssid1, password1);
+    while (WiFi.status() != WL_CONNECTED) {
+      delay(500);
+      Serial.println("Connecting to WiFi..");
+    }
+
     WiFi.softAP(ssid, password);
     if (debug) {
         Serial.println(F("IP Address: "));
         Serial.println(WiFi.localIP());
     }
     server.on("/", HTTP_GET, [](AsyncWebServerRequest* request) { request->send_P(200, "text/html", index_html, processor); });
+    server.on("/data.txt", HTTP_GET, [](AsyncWebServerRequest *request){request->send(SPIFFS, "/data.txt", "text/html");});
     server.on("/get", HTTP_GET, [](AsyncWebServerRequest* request) {
         String inputMessage;
 
@@ -401,6 +449,7 @@ void loop() {
           Serial.println("We open door and ignore all");
           sw2 = false;
           sw1 = true;
+          writeFile(SPIFFS, "/data.txt", "Scanning BLE disabled,please push button.");
           }
           if (myServo.isStopped()) {
               myServo.goTo(opendoor);
