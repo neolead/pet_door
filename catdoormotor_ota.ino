@@ -91,8 +91,8 @@ const char index_html[] PROGMEM = R"rawliteral(
     <input type="submit" value="Submit" onclick="submitMessage()">
   </form><br>
   <iframe style="display:none" name="hidden-form"></iframe>
-  <iframe id="rssi" src="data.txt" height="200" width="300" title="Iframe Example"></iframe>
-  <script> setInterval( function myRefresh() {  document.getElementById("rssi").src="data.txt";}, 1000); </script>
+  <iframe id="rssi" src="data.html" height="200" width="300" title="RSSI"></iframe>
+  <script> setInterval( function myRefresh() {  document.getElementById("rssi").src="data.html";}, 1000); </script>
 </body></html>)rawliteral";
 
 
@@ -255,14 +255,15 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
             for (size_t i = 0; i < (sizeof(knownAddresses) / sizeof(knownAddresses[0])); i++) {
               bool deviceKnown = knownAddresses[i].equalsIgnoreCase(pServerAddress.toString().c_str());
               if (deviceKnown) {
-                            String sendem = ((String)pServerAddress.toString().c_str()+"  rssi: "+advertisedDevice.getRSSI()+"\r\n");
-                            const char* sendemchar = sendem.c_str();
+                            String sendem = ((String)pServerAddress.toString().c_str()+"  rssi: "+advertisedDevice.getRSSI());
+                            String sendem1 = ((String)pServerAddress.toString().c_str()+"  rssi: "+advertisedDevice.getRSSI()+"<br>");
+                            const char* sendemchar = sendem1.c_str();
                             Serial.println(sendem);
                             if (webrssi == 10){
-                              writeFile(SPIFFS, "/data.txt", sendemchar);
+                              writeFile(SPIFFS, "/data.html", sendemchar);
                               webrssi = webrssi - 1;
                             }else{
-                                 appendFile(SPIFFS, "/data.txt", sendemchar);
+                                 appendFile(SPIFFS, "/data.html", sendemchar);
                                  webrssi = webrssi - 1 ;
                                  if (webrssi == 0){webrssi = 10;}
                             }
@@ -324,7 +325,7 @@ void setup()
         Serial.println("An Error has occurred while mounting SPIFFS");
         return;
     }
-    writeFile(SPIFFS, "/data.txt", "RSSI\r\n");
+    writeFile(SPIFFS, "/data.html", "RSSI<br>");
     Serial.print(F("FW. Version:"));
     Serial.println(fwversion);
     delay (2000);
@@ -341,7 +342,7 @@ void setup()
         Serial.println(WiFi.localIP());
     }
     server.on("/", HTTP_GET, [](AsyncWebServerRequest* request) { request->send_P(200, "text/html", index_html, processor); });
-    server.on("/data.txt", HTTP_GET, [](AsyncWebServerRequest *request){request->send(SPIFFS, "/data.txt", "text/html");});
+    server.on("/data.html", HTTP_GET, [](AsyncWebServerRequest *request){request->send(SPIFFS, "/data.html", "text/html");});
     server.on("/get", HTTP_GET, [](AsyncWebServerRequest* request) {
         String inputMessage;
 
@@ -404,11 +405,11 @@ void setup()
     delay(100);
 
 if (!updflag){
-    String ss = "We sleep ";
-    ss += sleeptime / 1000;
-    ss += " sec, wait for door init";
-    Serial.println(ss);
-    delay(sleeptime);
+    //String ss = "We sleep ";
+    //ss += sleeptime / 1000;
+    //ss += " sec, wait for door init";
+    //Serial.println(ss);
+    //delay(sleeptime);
     //WiFi.mode(WIFI_OFF);
 }
 
@@ -449,7 +450,7 @@ void loop() {
           Serial.println("We open door and ignore all");
           sw2 = false;
           sw1 = true;
-          writeFile(SPIFFS, "/data.txt", "Scanning BLE disabled,please push button.");
+          writeFile(SPIFFS, "/data.html", "Scanning BLE disabled,please push button.<br>");
           }
           if (myServo.isStopped()) {
               myServo.goTo(opendoor);
