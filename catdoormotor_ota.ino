@@ -1,4 +1,4 @@
-/*
+
 range / rssi
 20cm - -59..-60 
 30cm - -64..-65
@@ -29,7 +29,8 @@ int webrssi = 10;
 bool gerkondebug = false; //debug gerkon
 static boolean debug = false; //more verbose
 String fwversion = "22042021.2";
-String knownAddresses[] = {"d8:e3:43:1d:67:71", "d8:e3:43:1d:67:70"};  //mac of tag ibeacon
+//String knownAddresses[] = {"d8:e3:43:1d:67:71", "d8:e3:43:1d:67:70"};  //mac of tag ibeacon
+String knownAddresses[] = {"d1:5e:c5:70:e7:7e", "d8:e3:43:1d:67:70"};  //mac of tag ibeacon
 const int gerkonpin = 14; //pin for gerkon GND and d14
 const int switch_disable_pin = 27; //pin for switch to always open door.. if switched - door always open
 const int servo_pin = 13;
@@ -48,6 +49,7 @@ const char* PARAM_INT = "inputInt";
 const char* PARAM2_INT = "blockInt";
 const char* PARAM3_INT = "unblockInt";
 const char* UPDATE_INT = "updateInt";
+const char* REBOOT_INT = "rebootInt";
 bool updflag = false;
 int cal = 0;
 int bigrssi = 1; //total count high rssi
@@ -90,6 +92,10 @@ const char index_html[] PROGMEM = R"rawliteral(
     Reboot to update firmware<br>Device will reboot after 3 seconds,<br> back to normal mode,reboot device again: <input type="checkbox" name="updateInt" value="1" id="1">
     <input type="submit" value="Submit" onclick="submitMessage()">
   </form><br>
+  <form action="/get" target="hidden-form">
+    Reboot to update firmware<br>Device will reboot after 3 seconds,<br> back to normal mode,reboot device again: <input type="checkbox" name="rebootInt" value="1" id="1">
+    <input type="submit" value="Submit" onclick="submitMessage()">
+  </form><br>
   <iframe style="display:none" name="hidden-form"></iframe>
   <iframe id="rssi" src="data.html" height="200" width="300" title="RSSI"></iframe>
   <script> setInterval( function myRefresh() {  document.getElementById("rssi").src="data.html";}, 1000); </script>
@@ -98,7 +104,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 
 void notFound(AsyncWebServerRequest* request) {
     request->send(404, "text/plain", "Not found");
-}
+};
 
 String readFile(fs::FS& fs, const char* path) {
     if (debug) {
@@ -124,7 +130,8 @@ String readFile(fs::FS& fs, const char* path) {
 
     file.close();
     return fileContent;
-}
+};
+
 void writeFile(fs::FS& fs, const char* path, const char* message) {
     if (debug) {
         Serial.printf("Writing file: %s\r\n", path);
@@ -147,7 +154,7 @@ void writeFile(fs::FS& fs, const char* path, const char* message) {
         }
     }
     file.close();
-}
+};
 
 void appendFile(fs::FS& fs, const char* path, const char* message) {
     if (debug) {
@@ -171,7 +178,7 @@ void appendFile(fs::FS& fs, const char* path, const char* message) {
         }
     }
     file.close();
-}
+};
 
 
 String processor(const String& var) {
@@ -210,7 +217,7 @@ void beginOTA(const char* hostname){
  ArduinoOTA.setHostname("updatefeed");
     ArduinoOTA.begin();
     Serial.print("OTA is up");
-}
+};
 
 void inputx() {
     yourInputInt = readFile(SPIFFS, "/inputInt.txt").toInt();
@@ -245,7 +252,7 @@ void inputx() {
         Serial.printf("*** Your inputInt: %d\n", yourInputInt);
         Serial.printf("*** Your unblock value: %d\n", unblockInt);
     }
-}
+};
 
  
 class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
@@ -313,7 +320,7 @@ void SekundenTic()  // Runs every second
       relayswitched = false;
       }
     }}
-}
+};
  
 void setup() 
 {
@@ -368,6 +375,12 @@ void setup()
             ESP.restart();
 
         } 
+        else if (request->hasParam(REBOOT_INT)) {
+            inputMessage = request->getParam(REBOOT_INT)->value();
+            delay (100);
+            ESP.restart();
+        } 
+
         else if (request->hasParam(PARAM2_INT)) {
             inputMessage = request->getParam(PARAM2_INT)->value();
             int ch = inputMessage.toInt();
